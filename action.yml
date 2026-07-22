@@ -1,0 +1,90 @@
+name: Run Playwright e2e tests through yarn and upload reports
+description: |
+  Install Playwright browsers, run yarn e2e tasks, and upload CI reports.
+
+  A JUnit report at `build/playwright/junit.xml` is expected when tests run.
+  HTML reports and traces under `build/playwright/report/` and `build/playwright/results/`
+  are uploaded separately when present.
+
+inputs:
+  working-directory:
+    description: Relative path under $GITHUB_WORKSPACE where the project is located.
+    required: false
+    default: "."
+  pre-command:
+    description: Optional shell command to run before Playwright tests (e.g. build dependent workspaces).
+    required: false
+    default: ""
+  install-task-name:
+    description: The yarn task used to install Playwright browsers.
+    required: true
+    default: test:e2e:install
+  task-name:
+    description: The yarn task used to run Playwright tests.
+    required: true
+    default: test:e2e
+  report-name:
+    description: The name of the JUnit report artifact.
+    required: true
+    default: typescript-e2e-results.junit.xml
+  debug-report-name:
+    description: The name of the HTML report and trace artifacts.
+    required: true
+    default: typescript-e2e-debug
+  report-retention-days:
+    description: Duration in days to preserve reports. Defaults to 5.
+    required: true
+    default: "5"
+
+runs:
+  using: composite
+  steps:
+    - name: Action context
+      shell: bash
+      id: context
+      run: |
+        echo "working-directory=$(realpath "${{ inputs.working-directory }}")" >> "$GITHUB_OUTPUT"
+        VERSION=$(node -p "require('${{ inputs.working-directory }}/package.json').devDependencies['@playwright/test']")
+        echo "playwright-version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+    - name: Pre-command
+      if: inputs.pre-command != ''
+      shell: bash
+      working-directory: ${{ steps.context.outputs.working-directory }}
+      run: ${{ inputs.pre-command }}
+
+    - name: Cache Playwright browsers
+      uses: actions/cache@0c56e83b4704a7b7c67dc3460c3589e4a2b3e266 # v4
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-${{ runner.os }}-${{ steps.context.outputs.playwright-version }}
+
+    - name: Install Playwright browsers
+      shell: bash
+      working-directory: ${{ steps.context.outputs.working-directory }}
+      run: yarn ${{ inputs.install-task-name }}
+
+    - name: Run Playwright e2e tests
+      shell: bash
+      working-directory: ${{ steps.context.outputs.working-directory }}
+      run: yarn ${{ inputs.task-name }}
+
+    - name: Upload JUnit report
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      if: success() || failure()
+      with:
+        name: ${{ inputs.report-name }}
+        retention-days: ${{ inputs.report-retention-days }}
+        if-no-files-found: error
+        path: ${{ steps.context.outputs.working-directory }}/build/playwright/junit.xml
+
+    - name: Upload debug artifacts
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      if: success() || failure()
+      with:
+        name: ${{ inputs.debug-report-name }}
+        retention-days: ${{ inputs.report-retention-days }}
+        if-no-files-found: ignore
+        path: |
+          ${{ steps.context.outputs.working-directory }}/build/playwright/report/
+          ${{ steps.context.outputs.working-directory }}/build/playwright/results/
