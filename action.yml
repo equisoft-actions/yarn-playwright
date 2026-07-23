@@ -3,7 +3,7 @@ description: |
   Install Playwright browsers, run yarn e2e tasks, and upload CI reports.
 
   A JUnit report at `build/playwright/junit.xml` is expected when tests run.
-  HTML reports and traces under `build/playwright/report/` and `build/playwright/results/`
+  HTML reports and traces under `build/playwright/report/` and `build/playwright/test-results/`
   are uploaded separately when present.
 
 inputs:
@@ -54,7 +54,7 @@ runs:
       run: ${{ inputs.pre-command }}
 
     - name: Cache Playwright browsers
-      uses: actions/cache@0c56e83b4704a7b7c67dc3460c3589e4a2b3e266 # v4
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
       with:
         path: ~/.cache/ms-playwright
         key: playwright-${{ runner.os }}-${{ steps.context.outputs.playwright-version }}
@@ -87,4 +87,4 @@ runs:
         if-no-files-found: ignore
         path: |
           ${{ steps.context.outputs.working-directory }}/build/playwright/report/
-          ${{ steps.context.outputs.working-directory }}/build/playwright/results/
+          ${{ steps.context.outputs.working-directory }}/build/playwright/test-results/

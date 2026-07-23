@@ -34,6 +34,6 @@ Paths are relative to `working-directory`.
 |----------|------|-------------------|
 | JUnit | `build/playwright/junit.xml` | fails the step |
 | HTML report | `build/playwright/report/` | skipped |
-| Traces | `build/playwright/results/` | skipped |
+| Traces | `build/playwright/test-results/` | skipped |
 
 Configure Playwright reporters in `{working-directory}` to write under `build/playwright/`.
