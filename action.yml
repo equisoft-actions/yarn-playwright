@@ -70,7 +70,7 @@ runs:
       run: yarn ${{ inputs.task-name }}
 
     - name: Upload JUnit report
-      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
       if: success() || failure()
       with:
         name: ${{ inputs.report-name }}
@@ -79,7 +79,7 @@ runs:
         path: ${{ steps.context.outputs.working-directory }}/build/playwright/junit.xml
 
     - name: Upload debug artifacts
-      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
       if: success() || failure()
       with:
         name: ${{ inputs.debug-report-name }}
